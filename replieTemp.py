@@ -6,6 +6,7 @@ import time
 import tweepy
 import re
 import requests
+import json
 #import Humidity_HTS221
 import FaBoHumidity_HTS221
 
@@ -42,7 +43,7 @@ api = tweepy.API(auth)
 
 
 p_temp = r"ラボの温度"
-p_weather = r""
+p_weather = r"weather"
 
 #URL for send tweet
 
@@ -67,8 +68,15 @@ def reply_text(status):
 
 
 def weather_text(status):
-
+    url = "http://weather.livedoor.com/forecast/webservice/json/v1?city=070030"
+    req = requests.get(url)
+    
+    data = json.loads(req)
+    print data.forecasts
+        
     return True
+    
+
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
         #if(text == "ping" or text =="  ping" or text == "Ping"):
@@ -76,8 +84,12 @@ class Listener(tweepy.StreamListener):
         if(re.match(p_temp, origin_text)): 
             text = reply_text(status)
             reply = status.id
-            api.update_status(text,reply)
-
+            api.update_status(text,reply)            
+         
+        elif(re.match(p_weather, origin_temp)):
+            weather_text(status)
+        
+           
         return True 
           
     def on_error(self, status_code):
