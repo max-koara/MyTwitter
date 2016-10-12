@@ -43,7 +43,7 @@ api = tweepy.API(auth)
 
 
 p_temp = r"ラボの温度"
-p_weather = r"weather"
+p_tweather = r"明日の天気"
 
 #URL for send tweet
 
@@ -71,10 +71,19 @@ def weather_text(status):
     url = "http://weather.livedoor.com/forecast/webservice/json/v1?city=070030"
     req = requests.get(url)
     
-    data = json.loads(req)
-    print data.forecasts
-        
-    return True
+    origin = req.json()
+    
+    data = origin["forecasts"][1]    
+    
+    max_temp = str(data["temperature"]["max"])
+    min_temp = str(data["temperature"]["min"])
+    date = str(data["date"])
+    telop = str(data["telop"])      
+    
+    template = "\n" + date + "\n" + "明日の天気は" + telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
+    text = "@"+ status.author.screen_name.encode("UTF-8")　+ template
+    
+    return text
     
 
 class Listener(tweepy.StreamListener):
@@ -87,9 +96,10 @@ class Listener(tweepy.StreamListener):
             api.update_status(text,reply)            
          
         elif(re.match(p_weather, origin_text)):
-            weather_text(status)
+            text = weather_text(status)
+            reply = status.id
+            api.update_status(text,reply)
         
-           
         return True 
           
     def on_error(self, status_code):
