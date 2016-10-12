@@ -86,7 +86,7 @@ class Listener(tweepy.StreamListener):
             reply = status.id
             api.update_status(text,reply)            
          
-        elif(re.match(p_weather, origin_temp)):
+        elif(re.match(p_weather, origin_text)):
             weather_text(status)
         
            
