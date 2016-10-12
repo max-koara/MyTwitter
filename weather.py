@@ -51,20 +51,6 @@ url = "https://api.twitter.com/1.1/statuses/update.json"
 
 #return reply text
 
-def reply_text():
-    temp = adt7410.read()
-    humi = hts221.readHumi()
-    
-    tl1 = "\nコアラのデスクは.\n気温 : %4.2f℃" % temp
-    tl2 = "\n湿度 : %4.2f" %  humi + r"%"
-    tl3 = "\n体感気温 : %4.2f℃ "%  getExTemp(temp, humi) + "です"
-    tl4 = "\n" + datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-
-    template = tl1 + tl2 + tl3 + tl4
-    text =  template
-    print "return OK"
-    return text
-
 def weather_text():
     wurl = "http://weather.livedoor.com/forecast/webservice/json/v1?city=070030"
     req = requests.get(wurl)
@@ -78,46 +64,19 @@ def weather_text():
     date = data["date"].encode('UTF-8')
     telop = data["telop"].encode('UTF-8')      
     print "set some jsons data"
+    print type  (max_temp)
+    print type (min_temp)
+    print type (date)
+    print type (telop)
     template = "\n"+ date + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
     text = template
     return text
- 
-   
+    
 
-class Listener(tweepy.StreamListener):
-    def on_status(self, status):
-        #if(text == "ping" or text =="  ping" or text == "Ping"):
-        origin_text = status.text.encode("UTF-8")
-        if(re.match(p_temp, origin_text)): 
-            template = reply_text()
-            reply = status.id
-            scr_name = status.author.screen_name.encode("UTF-8")
-            text = "@" + scr_name + template
-            api.update_status(text,reply)            
          
-        elif(re.match(p_weather, origin_text)):
-            template = weather_text()
-            scr_name = status.author.screen_name.encode("UTF-8")
-            reply = status.id
-            text = "@" + scr_name + template
-            api.update_status(text,reply)
-        
-        return True 
-          
-    def on_error(self, status_code):
-        print status_code
-        return True
-
-    def on_timeout(self):
-        print('Timeout...')
-        return True
+text = weather_text()
+print "get template weather"
+api.update_status(text)
 
 
-
-if __name__ =='__main__':
-
-    listener = Listener()
-    stream = tweepy.Stream(auth, listener)
-    stream.timeout = None
-    stream.userstream()
 
