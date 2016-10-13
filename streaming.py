@@ -16,27 +16,21 @@ api = tweepy.API(auth)
 
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
-        status.created_at += timedelta(hours=9)
-
-        if(status.in_reply_to_status_id == None):
-            #api.update_status("test", status.id)
-            print status.id
-            print status.in_reply_to_status_id
-            print
-
-            id = status.id
-            screen_name = status.author.screen_name.encode("UTF-8")
-            text = "@" + screen_name + " test"
-            api.update_status(status=text, in_reply_to_status_id=id)
+     #   status.created_at += timedelta(hours=9)
+      #  print status
 
         #api.update_status("test desu", status.id)
         #print(u"{text}".format(text=status.text))
         #print(u"{name}({screen}) {created} via {src}\n".format(
          #   name=status.author.name, screen = status.author.screen_name,
          #   created=status.created_at, src=status.source))
-
+    
         return True
 
+    def on_event(self, status):
+        print status
+
+        return True
     def on_error(self, status_code):
         print('Timeout...')
         return True

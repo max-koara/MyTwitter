@@ -41,10 +41,12 @@ auth.set_access_token(AT, AS)
 
 api = tweepy.API(auth)
 
+#pattern list
 
 p_temp = r"ラボの温度"
-p_weather = r"明日の天気"
-
+p_wtommorow = r"明日の天気"
+p_wtoday = r"testtest"
+p_wntomm = r"test"
 #URL for send tweet
 
 url = "https://api.twitter.com/1.1/statuses/update.json"
@@ -65,13 +67,12 @@ def reply_text():
     print "return OK"
     return text
 
-def weather_text():
+def weather_text(i):
     wurl = "http://weather.livedoor.com/forecast/webservice/json/v1?city=070030"
     req = requests.get(wurl)
     
     origin = req.json()
-    
-    data = origin["forecasts"][1]    
+    data = origin["forecasts"][i]    
     
     max_temp = data["temperature"]["max"]["celsius"].encode('UTF-8')
     min_temp = data["temperature"]["min"]["celsius"].encode('UTF-8')
@@ -79,14 +80,20 @@ def weather_text():
     telop = data["telop"].encode('UTF-8')      
     print "set some jsons data"
     template = "\n"+ date + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
-    text = template
+    text = template + datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+
     return text
  
-   
+def update_text(status, template):
+    reply = status.id
+    scr_name = status.author.screen_name.encode("UTF-8")
+    text = "@" + scr_name + template
+    api.update_status(text,reply)
 
+    return True
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
-        #if(text == "ping" or text =="  ping" or text == "Ping"):
+        
         origin_text = status.text.encode("UTF-8")
         if(re.match(p_temp, origin_text)): 
             template = reply_text()
@@ -95,13 +102,19 @@ class Listener(tweepy.StreamListener):
             text = "@" + scr_name + template
             api.update_status(text,reply)            
          
-        elif(re.match(p_weather, origin_text)):
-            template = weather_text()
-            scr_name = status.author.screen_name.encode("UTF-8")
-            reply = status.id
-            text = "@" + scr_name + template
-            api.update_status(text,reply)
+        elif(re.match(p_wtoday, origin_text)):
+            template = weather_text(0)
+            update_text(status, template)
+
+        elif(re.match(p_wtommorow, origin_text)):
+            template = weather_text(1)
+            update_text(status, template)
         
+        elif(re.match(p_wntomm, origin_text)):
+            template = weather_text(2)
+            update_text(status,template)
+
+
         return True 
           
     def on_error(self, status_code):
