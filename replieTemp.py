@@ -45,8 +45,8 @@ api = tweepy.API(auth)
 
 p_temp = r"ラボの温度"
 p_wtommorow = r"明日の天気"
-p_wtoday = r"testtest"
-p_wntomm = r"test"
+p_wtoday = r"今日の天気"
+p_wntomm = r"明後日の天気"
 #URL for send tweet
 
 url = "https://api.twitter.com/1.1/statuses/update.json"
