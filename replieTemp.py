@@ -70,16 +70,18 @@ def reply_text():
 def weather_text(i):
     wurl = "http://weather.livedoor.com/forecast/webservice/json/v1?city=070030"
     req = requests.get(wurl)
-    
+    print"get requests"
+
     origin = req.json()
-    data = origin["forecasts"][i]    
+    title = origin["title"].encode("UTF-8")
+    data = origin["forecasts"][i] 
     
     max_temp = data["temperature"]["max"]["celsius"].encode('UTF-8')
     min_temp = data["temperature"]["min"]["celsius"].encode('UTF-8')
     date = data["date"].encode('UTF-8')
-    telop = data["telop"].encode('UTF-8')      
+    telop = data["telop"].encode('UTF-8')  
     print "set some jsons data"
-    template = "\n"+ date + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
+    template = "\n"  + date + "\n" + title + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
     text = template + datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
     return text
@@ -91,6 +93,12 @@ def update_text(status, template):
     api.update_status(text,reply)
 
     return True
+
+
+class myException(Exception): pass
+
+
+
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
         
@@ -102,35 +110,36 @@ class Listener(tweepy.StreamListener):
             text = "@" + scr_name + template
             api.update_status(text,reply)            
          
-        elif(re.match(p_wtoday, origin_text)):
-            template = weather_text(0)
-            update_text(status, template)
-
         elif(re.match(p_wtommorow, origin_text)):
+            print "launch tommorow"
             template = weather_text(1)
+            print "get template"
             update_text(status, template)
         
-        elif(re.match(p_wntomm, origin_text)):
-            template = weather_text(2)
-            update_text(status,template)
-
-
         return True 
           
     def on_error(self, status_code):
+        print "on_error raised"
         print status_code
-        return True
+        raise myException
 
     def on_timeout(self):
         print('Timeout...')
-        return True
+        raise myException
 
 
 
 if __name__ =='__main__':
-
     listener = Listener()
     stream = tweepy.Stream(auth, listener)
     stream.timeout = None
-    stream.userstream()
+    
+    while True:
+        try:
+            stream.userstream()
 
+        except myException():
+            api.update_status("Reboot.\nPlease wait.")
+            time.sleep(30)
+            stream = tweepy.Stream(auth, listener)
+            stream.timeout = None
