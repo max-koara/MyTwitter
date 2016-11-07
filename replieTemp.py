@@ -81,7 +81,10 @@ def weather_text(i):
     date = data["date"].encode('UTF-8')
     telop = data["telop"].encode('UTF-8')  
     print "set some jsons data"
-    template = "\n"  + date + "\n" + title + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
+    if(min_temp != NULL):
+        template = "\n"  + date + "\n" + title + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
+    else:
+        template = "\n"  + date + "\n" + title + "\n今日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + の予想です。\n" 
     text = template + datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
     return text
@@ -115,6 +118,12 @@ class Listener(tweepy.StreamListener):
             template = weather_text(1)
             print "get template"
             update_text(status, template)
+        
+        elif(re.match(p_wtoday, origin_text)):
+            print "load today weather"
+            template = weather_text(0)
+            print "get template"
+            update_text(status, template)            
         
         return True 
           
