@@ -64,13 +64,11 @@ def reply_text():
 
     template = tl1 + tl2 + tl3 + tl4
     text =  template
-    print "return OK"
     return text
 
 def weather_text(i):
     wurl = "http://weather.livedoor.com/forecast/webservice/json/v1?city=070030"
     req = requests.get(wurl)
-    print"get requests"
 
     origin = req.json()
     title = origin["title"].encode("UTF-8")
@@ -83,6 +81,7 @@ def weather_text(i):
     print "set some jsons data"
     template = "\n"  + date + "\n" + title + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
     text = template + datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    
 
     return text
  
@@ -115,7 +114,7 @@ class Listener(tweepy.StreamListener):
             template = weather_text(1)
             print "get template"
             update_text(status, template)
-        
+
         return True 
           
     def on_error(self, status_code):
@@ -136,9 +135,13 @@ if __name__ =='__main__':
     
     while True:
         try:
+            print "start"
             stream.userstream()
-
-        except myException():
+        
+        except KeyboardInterrupt:
+            exit()
+        except:
+            print "system reboot"
             api.update_status("Reboot.\nPlease wait.")
             time.sleep(30)
             stream = tweepy.Stream(auth, listener)

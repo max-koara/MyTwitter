@@ -1,2 +1,7 @@
-return OK
-return OK
+launch tommorow
+set some jsons data
+get template
+launch tommorow
+system reboot
+launch tommorow
+system reboot
