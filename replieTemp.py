@@ -12,6 +12,9 @@ import FaBoHumidity_HTS221
 
 import twitkey
 import cupnudle
+import openWM
+import roadWM
+
 #add method get Experimence temperature
 def getExTemp(d_temp, d_humi):
 
@@ -46,9 +49,9 @@ api = tweepy.API(auth)
 
 p_temp = r"ラボの温度"
 p_wtommorow = r"明日の天気"
-p_wtoday = r"今日の天気"
+p_wtoday = r"今の天気"
 p_wntomm = r"明後日の天気"
-p_nudle = "ごつもり"
+p_nudle = r"ごつもりガチャ"
 #URL for send tweet
 
 url = "https://api.twitter.com/1.1/statuses/update.json"
@@ -59,7 +62,7 @@ def reply_text():
     temp = adt7410.read()
     humi = hts221.readHumi()
     
-    tl1 = "\nコアラのデスクは.\n気温 : %4.2f℃" % temp
+    tl1 = "コアラのデスクは.\n気温 : %4.2f℃" % temp
     tl2 = "\n湿度 : %4.2f" %  humi + r"%"
     tl3 = "\n体感気温 : %4.2f℃ "%  getExTemp(temp, humi) + "です"
     tl4 = "\n" + datetime.now().strftime("%Y/%m/%d %H:%M:%S")
@@ -82,7 +85,7 @@ def weather_text(i):
     print "set some jsons data"
     min_temp = data["temperature"]["min"]["celsius"].encode('UTF-8')
 
-    template = "\n"  + date + "\n" + title + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
+    template =  date + "\n" + title + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
     
     
     text = template + datetime.now().strftime("%Y/%m/%d %H:%M:%S")
@@ -92,15 +95,30 @@ def weather_text(i):
 
 def nudle_text():
     nudle = cupnudle
-    template = "\n" + nudle.get_nudle() +"\n" +  datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    template = nudle.get_nudle() +"\n" +  datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     return template
  
+
+
+def WM_text():
+    op = roadWM
+    city = op.city_name.encode('UTF-8')
+    weather = op.weather.encode('UTF-8')
+    temp = op.temp
+    max_temp = op.max_temp
+    min_temp = op.min_temp
+    wind = op.wind
+    pressure = op.pressure
+
+    template = "Get city:" +  city + "\n"+ weather + "\nTemp :" + temp + "℃\nMax_T:" + max_temp +"℃\nMin_T:"+ min_temp + "℃\nWind:"+ wind +"m/s\nPressure :" + pressure + "hPa\n" +datetime.now().strftime("%H:%M:%S")  
+
+    return template
 
 
 def update_text(status, template):
     reply = status.id
     scr_name = status.author.screen_name.encode("UTF-8")
-    text = "@" + scr_name + template
+    text = "@" + scr_name +"\n"+ template
     api.update_status(text,reply)
 
     return True
@@ -124,17 +142,18 @@ class Listener(tweepy.StreamListener):
             print "get template"
             update_text(status, template)
 
-       # elif(re.match(p_wtoday, origin_text)):
-        #    print "load today weather"
-         #   template = weather_text(0)
-          #  print "get template"
-           # update_text(status, template)  
-
         elif(p_nudle in origin_text):
             print "try get nudle"
             template = nudle_text()
             print "get nudle"
             update_text(status, template)
+
+        elif(re.match(p_wtoday, origin_text)):
+            print "load today weather"
+            template = WM_text()
+            print "get template"
+            update_text(status, template)  
+
 
         
         return True 
