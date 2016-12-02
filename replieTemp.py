@@ -11,6 +11,7 @@ import json
 import FaBoHumidity_HTS221
 
 import twitkey
+import cupnudle
 #add method get Experimence temperature
 def getExTemp(d_temp, d_humi):
 
@@ -47,6 +48,7 @@ p_temp = r"ラボの温度"
 p_wtommorow = r"明日の天気"
 p_wtoday = r"今日の天気"
 p_wntomm = r"明後日の天気"
+p_nudle = "ごつもり"
 #URL for send tweet
 
 url = "https://api.twitter.com/1.1/statuses/update.json"
@@ -75,19 +77,26 @@ def weather_text(i):
     data = origin["forecasts"][i] 
     
     max_temp = data["temperature"]["max"]["celsius"].encode('UTF-8')
-    min_temp = data["temperature"]["min"]["celsius"].encode('UTF-8')
     date = data["date"].encode('UTF-8')
     telop = data["telop"].encode('UTF-8')  
     print "set some jsons data"
-    if(min_temp != NULL):
-        template = "\n"  + date + "\n" + title + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
-    else:
-        template = "\n"  + date + "\n" + title + "\n今日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\nの予想です。\n" 
+    min_temp = data["temperature"]["min"]["celsius"].encode('UTF-8')
+
+    template = "\n"  + date + "\n" + title + "\n明日の天気は"+ telop + "。\n最高気温は "+ max_temp + "℃\n" + "最低気温は" + min_temp + "℃の予想です。\n" 
+    
+    
     text = template + datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     
 
     return text
+
+def nudle_text():
+    nudle = cupnudle
+    template = "\n" + nudle.get_nudle() +"\n" +  datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    return template
  
+
+
 def update_text(status, template):
     reply = status.id
     scr_name = status.author.screen_name.encode("UTF-8")
@@ -107,22 +116,26 @@ class Listener(tweepy.StreamListener):
         origin_text = status.text.encode("UTF-8")
         if(re.match(p_temp, origin_text)): 
             template = reply_text()
-            reply = status.id
-            scr_name = status.author.screen_name.encode("UTF-8")
-            text = "@" + scr_name + template
-            api.update_status(text,reply)            
-         
+            update_text(status, template)
+            
         elif(re.match(p_wtommorow, origin_text)):
             print "launch tommorow"
             template = weather_text(1)
             print "get template"
             update_text(status, template)
 
-        elif(re.match(p_wtoday, origin_text)):
-            print "load today weather"
-            template = weather_text(0)
-            print "get template"
-            update_text(status, template)            
+       # elif(re.match(p_wtoday, origin_text)):
+        #    print "load today weather"
+         #   template = weather_text(0)
+          #  print "get template"
+           # update_text(status, template)  
+
+        elif(p_nudle in origin_text):
+            print "try get nudle"
+            template = nudle_text()
+            print "get nudle"
+            update_text(status, template)
+
         
         return True 
           
@@ -151,7 +164,5 @@ if __name__ =='__main__':
             exit()
         except:
             print "system reboot"
-            api.update_status("Reboot.\nPlease wait.")
-            time.sleep(30)
             stream = tweepy.Stream(auth, listener)
             stream.timeout = None
