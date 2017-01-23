@@ -14,17 +14,36 @@ auth.set_access_token(AT, AS)
 
 api = tweepy.API(auth)
 
+class MyException(Exception): pass
+
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
-     #   status.created_at += timedelta(hours=9)
-      #  print status
+        
+        '''
+        status has all information of tweet.
 
-        #api.update_status("test desu", status.id)
-        #print(u"{text}".format(text=status.text))
-        #print(u"{name}({screen}) {created} via {src}\n".format(
-         #   name=status.author.name, screen = status.author.screen_name,
-         #   created=status.created_at, src=status.source))
-    
+        if you get 
+        twitter ID of tweet author  > status.authoer.screen_name
+        twitter Name                > status.author.name
+        tweet text                  > status.text
+        favorite count              > status.favorite_count
+        tweet ID(if you reply)      > status.in_reply_to_status_id
+        and other parameter if you see, please un comment out for the last print 
+
+        function on_status call if stream get new tweet, if you want to add some function for your bot, 
+        please add codes in this.
+
+        default this function, if get new tweet, print user-name, user-id and tweet text on your console. 
+        '''
+
+        print "{username} :@{userid}".format(username=status.author.name.encode("UTF-8"), userid = status.author.screen_name)  
+        print status.text
+        print        
+        
+        
+        #if you get all parameter of json, please delete comment-out
+        #print status
+        
         return True
 
     def on_event(self, status):
@@ -33,16 +52,17 @@ class Listener(tweepy.StreamListener):
         return True
     def on_error(self, status_code):
         print('Timeout...')
-        return True
+        raise MyException
 
     def on_timeout(self):
         print('Timeout...')
-        return True
-
+        raise MyException
 
 
 
 if __name__ == '__main__':
-    stream = tweepy.Stream(api.auth, Listener())
-    stream.userstream()
-            
+    try:    
+        stream = tweepy.Stream(api.auth, Listener())
+        stream.userstream()
+    except KeyboardInterrupt:
+        exit()
