@@ -27,6 +27,7 @@ class Listener(tweepy.StreamListener):
         twitter Name                > status.author.name
         tweet text                  > status.text
         favorite count              > status.favorite_count
+        tweet id                    > status.id
         tweet ID(if you reply)      > status.in_reply_to_status_id
         and other parameter if you see, please un comment out for the last print 
 
@@ -34,6 +35,14 @@ class Listener(tweepy.StreamListener):
         please add codes in this.
 
         default this function, if get new tweet, print user-name, user-id and tweet text on your console. 
+
+        if you update tweet, use this function
+
+        api.update_status("hogehuga")
+
+        if you reply ,
+        replyid = "tweet_id"
+        api.update_status("hogehuga", replyid)
         '''
 
         print "{username} :@{userid}".format(username=status.author.name.encode("UTF-8"), userid = status.author.screen_name)  
