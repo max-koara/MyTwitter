@@ -47,6 +47,7 @@ class Listener(tweepy.StreamListener):
 
         print "{username} :@{userid}".format(username=status.author.name.encode("UTF-8"), userid = status.author.screen_name)  
         print status.text
+        print "tweet id :{tweet_id}  favorite: {fvcount}".format(tweet_id=status.id, fvcount=status.favorite_count)
         print        
         
         
