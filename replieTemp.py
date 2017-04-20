@@ -1,6 +1,5 @@
 #-*- coding:utf-8 -*- 
 from datetime import datetime
-from requests_oauthlib import OAuth1Session
 import FaBoTemperature_ADT7410
 import time
 import tweepy
@@ -13,7 +12,6 @@ import FaBoHumidity_HTS221
 import twitkey
 import cupnudle
 import openWM
-import roadWM
 
 #add method get Experimence temperature
 def getExTemp(d_temp, d_humi):
@@ -52,6 +50,7 @@ p_wtommorow = r"明日の天気"
 p_wtoday = r"今の天気"
 p_wntomm = r"明後日の天気"
 p_nudle = r"ごつもりガチャ"
+w_puni = r"ぷにぴ"
 #URL for send tweet
 
 url = "https://api.twitter.com/1.1/statuses/update.json"
@@ -71,6 +70,7 @@ def reply_text():
     text =  template
     return text
 
+#get weather information
 def weather_text(i):
     wurl = "http://weather.livedoor.com/forecast/webservice/json/v1?city=070030"
     req = requests.get(wurl)
@@ -93,28 +93,40 @@ def weather_text(i):
 
     return text
 
+# cup nudle 
 def nudle_text():
     nudle = cupnudle
     template = nudle.get_nudle() +"\n" +  datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     return template
  
+def punirep():
+    template = "ぷにぴ、じゃあないんだよ" + "\n" + datetime.now().strftime("%Y%m%d %H:%M:%S")
 
 
+# real time weather information
 def WM_text():
-    op = roadWM
-    city = op.city_name.encode('UTF-8')
-    weather = op.weather.encode('UTF-8')
-    temp = op.temp
-    max_temp = op.max_temp
-    min_temp = op.min_temp
-    wind = op.wind
-    pressure = op.pressure
+    API_KEY = openWM.API
+    URL = "http://api.openweathermap.org/data/2.5/weather" 
 
-    template = "Get city:" +  city + "\n"+ weather + "\nTemp :" + temp + "℃\nMax_T:" + max_temp +"℃\nMin_T:"+ min_temp + "℃\nWind:"+ wind +"m/s\nPressure :" + pressure + "hPa\n" +datetime.now().strftime("%H:%M:%S")  
+    r = requests.get(URL + "?q=Aizu-Wakamatsu-shi,jp&APPID=" + API_KEY)
 
+    data = r.json()
+
+    city = data['name'].encode('UTF-8')
+    weather = data['weather'][0]['description'].encode('UTF-8')
+    humidity = str(data['main']['humidity'])
+    temp = str(data['main']['temp'] - 273.15)
+    max_temp = str(data['main']['temp_max'] -273.15)
+    min_temp = str(data['main']['temp_min'] - 273.15)
+    pressure = str(data['main']['pressure'])
+    wind = str(data['wind']['speed'])
+
+
+    template = "Get city:" +  city + "\n"+ weather + "\nTemp :" + temp + "℃\nHumidity :" + humidity + "%℃\nWind:"+ wind +"m/s\nPressure :" + pressure + "hPa\n" +datetime.now().strftime("%H:%M:%S")
+   
     return template
 
-
+#tweet upload method
 def update_text(status, template):
     reply = status.id
     scr_name = status.author.screen_name.encode("UTF-8")
@@ -127,11 +139,14 @@ def update_text(status, template):
 class myException(Exception): pass
 
 
-
+#stream Listener. If you change bot behavior, you add code on_status 
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
         
+        #get tweet and Allocation
         origin_text = status.text.encode("UTF-8")
+
+
         if(re.match(p_temp, origin_text)): 
             template = reply_text()
             update_text(status, template)
@@ -152,10 +167,13 @@ class Listener(tweepy.StreamListener):
             print "load today weather"
             template = WM_text()
             print "get template"
-            update_text(status, template)  
-
-
-        
+            update_text(status, template) 
+        elif(re.match(w_puni, origin_text)):
+            sname = status.author.screen_name.encode("UTF-8")
+            if(sname =="innocent_mame"):
+                template = punirep()
+                print "puni-pi"
+                api.update_status(template)
         return True 
           
     def on_error(self, status_code):
